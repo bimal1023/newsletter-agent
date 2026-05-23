@@ -45,3 +45,55 @@ def researcher_agent(state):
         "next_agent": "writer",
         "status": "writing"
     }
+
+    # ── Writer Agent ──────────────────────────────────────────────
+def writer_agent(state):
+    print(" Writer working...")
+
+    # If there's feedback from the editor, revise the draft
+    # Otherwise write a fresh draft from research
+    if state.feedback:
+        prompt = f"""
+        You are a newsletter writer. Revise the draft based on the editor's feedback.
+
+        Original draft:
+        {state.draft}
+
+        Editor feedback:
+        {state.feedback}
+
+        Write an improved version addressing all feedback points.
+        """
+    else:
+        prompt = f"""
+        You are a newsletter writer. Write an engaging newsletter based on this research.
+
+        Topic: {state.topic}
+
+        Research:
+        {state.research}
+
+        Format the newsletter with:
+        - A catchy subject line
+        - A short intro (2-3 sentences)
+        - 3 main sections with headers
+        - A closing takeaway
+
+        Write in a clear, engaging tone for a tech-savvy audience.
+        """
+
+    messages = [
+        SystemMessage(content="You are an expert newsletter writer known for clear, engaging writing."),
+        HumanMessage(content=prompt)
+    ]
+
+    response = llm.invoke(messages)
+
+    print("Draft complete")
+    return {
+        "draft": response.content,
+        "feedback": "",        # clear old feedback after revision
+        "next_agent": "editor",
+        "status": "editing"
+    }
+    
