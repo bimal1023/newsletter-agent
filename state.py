@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Annotated
+from typing import Annotated, Literal
 import operator
 
 
@@ -20,3 +20,14 @@ class NewsletterState(BaseModel):
     # Supervisor routing
     next_agent: str = "researcher"
     status: str = "researching"
+
+
+# Structured output model for the Editor's decision
+class EditorDecision(BaseModel):
+    decision: Literal["approve", "revise"]
+    feedback: str = Field(
+        description="If revising, specific feedback for the writer. Empty if approving."
+    )
+    reason: str = Field(
+        description="Brief explanation of the decision."
+    )

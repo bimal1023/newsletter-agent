@@ -4,7 +4,7 @@ from langchain_anthropic import ChatAnthropic
 from langchain_tavily import TavilySearch
 from langchain_core.tools import tool
 from langchain_core.messages import HumanMessage, SystemMessage
-
+from state import NewsletterState, EditorDecision
 load_dotenv()
 
 # Shared LLM instance — all agents use this
@@ -46,7 +46,7 @@ def researcher_agent(state):
         "status": "writing"
     }
 
-    # ── Writer Agent ──────────────────────────────────────────────
+# ── Writer Agent ──────────────────────────────────────────────
 def writer_agent(state):
     print(" Writer working...")
 
@@ -96,4 +96,61 @@ def writer_agent(state):
         "next_agent": "editor",
         "status": "editing"
     }
-    
+
+# ── Editor Agent ──────────────────────────────────────────────
+def editor_agent(state):
+    print(" Editor reviewing...")
+
+    # Bind structured output to the LLM
+    structured_llm = llm.with_structured_output(EditorDecision)
+
+    messages = [
+        SystemMessage(content="""You are a sharp newsletter editor. 
+        Review drafts for clarity, structure, engagement, and accuracy.
+        Be constructive but demanding — only approve truly strong drafts."""),
+        HumanMessage(content=f"""
+        Review this newsletter draft on the topic: {state.topic}
+
+        Draft:
+        {state.draft}
+
+        Criteria:
+        - Clear and engaging subject line
+        - Strong intro that hooks the reader
+        - Well-structured sections with useful content
+        - Actionable closing takeaway
+        - Appropriate tone for a tech-savvy audience
+
+        Decide: approve or revise?
+        If revising, give specific actionable feedback.
+        """)
+    ]
+
+    decision = structured_llm.invoke(messages)
+
+    print(f"   Decision: {decision.decision.upper()}")
+    print(f"   Reason: {decision.reason}")
+
+    if decision.decision == "approve":
+        return {
+            "status": "approved",
+            "next_agent": "end",
+        }
+    else:
+        # Cap revisions at 2 to avoid infinite loops
+        new_revision_count = state.revision_count + 1
+        if new_revision_count >= 2:
+            print("   ⚠️  Max revisions reached — approving as-is")
+            return {
+                "status": "approved",
+                "next_agent": "end",
+                "revision_count": new_revision_count
+            }
+
+        print(f"   Feedback: {decision.feedback}")
+        return {
+            "feedback": decision.feedback,
+            "revision_count": new_revision_count,
+            "next_agent": "writer",
+            "status": "writing"
+        }
