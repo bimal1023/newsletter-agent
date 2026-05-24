@@ -1,4 +1,11 @@
+# Secrets
 .env
-__pycache__/
-*.pyc
+
+# OS
 .DS_Store
+
+# Editor / tool config (local only)
+.claude/settings.local.json
+CLAUDE.md
+AGENTS.md
+.claude
