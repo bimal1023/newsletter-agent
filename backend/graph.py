@@ -1,9 +1,9 @@
 from langgraph.graph import StateGraph, END
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint.sqlite import SqliteSaver
 from state import NewsletterState
 from agents import researcher_agent, writer_agent, editor_agent
 from supervisor import supervisor_node, route
-
+import sqlite3
 
 def build_graph():
     # 1. Initialize graph with our state
@@ -34,7 +34,8 @@ def build_graph():
     builder.add_edge("researcher", "supervisor")
     builder.add_edge("writer",     "supervisor")
     builder.add_edge("editor",     "supervisor")
-    checkpointer=MemorySaver()
+    conn=sqlite3.connect("memory.db",check_same_thread=False)
+    checkpointer=SqliteSaver(conn)
 
     return builder.compile(checkpointer=checkpointer)
 
