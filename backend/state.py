@@ -21,6 +21,9 @@ class NewsletterState(BaseModel):
     next_agent: str = "researcher"
     status: str = "researching"
 
+    covered_topics:list[str]= Field(default_factory=list)
+
+
 
 # Structured output model for the Editor's decision
 class EditorDecision(BaseModel):

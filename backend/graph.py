@@ -1,4 +1,5 @@
 from langgraph.graph import StateGraph, END
+from langgraph.checkpoint.memory import MemorySaver
 from state import NewsletterState
 from agents import researcher_agent, writer_agent, editor_agent
 from supervisor import supervisor_node, route
@@ -33,8 +34,9 @@ def build_graph():
     builder.add_edge("researcher", "supervisor")
     builder.add_edge("writer",     "supervisor")
     builder.add_edge("editor",     "supervisor")
+    checkpointer=MemorySaver()
 
-    return builder.compile()
+    return builder.compile(checkpointer=checkpointer)
 
 
 graph = build_graph()
