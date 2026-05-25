@@ -24,4 +24,8 @@ build/
 
 # Env
 .env
-memory.db
+
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
